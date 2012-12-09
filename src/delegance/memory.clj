@@ -1,33 +1,52 @@
 (ns delegance.memory
   (:require [delegance.protocols :refer :all]))
 
+(defn- random-uuid []
+  (java.util.UUID/randomUUID))
+
+(defn- current-time []
+  (long (/ (System/currentTimeMillis) 1000)))
+
+(defn- expired? [x]
+  (if-let [expires (:expires x)]
+    (>= (current-time) expires)))
+
 (deftype MemoryStore [a]
   Store
-  (store [_ val]
-    (let [key (java.util.UUID/randomUUID)]
-      (swap! a assoc key val)
+  (store [_ val timeout]
+    (let [key     (random-uuid)
+          expires (+ (current-time) timeout)]
+      (swap! a assoc key {:data val :expires expires})
       key))
   (fetch [_ key]
-    (@a key)))
+    (if-let [val (@a key)]
+      (if (expired? val)
+        (do (swap! a dissoc key) nil)
+        (:data val)))))
 
 (defn memory-store []
   (MemoryStore. (atom {})))
 
-(deftype MemoryQueue [q r]
+(deftype MemoryQueue [queue reserved]
   Queue
   (push [_ data]
     (dosync
-     (let [key (java.util.UUID/randomUUID)]
-       (alter q conj {:id key, :data data}))))
-  (reserve [_]
+     (alter queue conj {:id (random-uuid) :created (current-time) :data data})
+     nil))
+  (reserve [_ timeout]
     (dosync
-     (let [val (peek @q)]
-       (alter q pop)
-       (alter r assoc (:id val) val)
-       val)))
+     (doseq [[id x] @reserved :when (expired? x)]
+       (alter reserved dissoc id)
+       (alter queue conj (dissoc x :expires)))
+     (if-let [val (peek @queue)]
+       (let [val (assoc val :expires (+ (current-time) timeout))]
+         (alter queue pop)
+         (alter reserved assoc (:id val) val)
+         val))))
   (finish [_ key]
     (dosync
-     (alter r dissoc key))))
+     (alter reserved dissoc key)
+     nil)))
 
 (defn memory-queue []
   (MemoryQueue.
