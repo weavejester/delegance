@@ -55,9 +55,9 @@
   State
   (get! [_ key]
     (@a key))
-  (put! [_ key val]
+  (put [_ key val]
     (swap! a assoc key val))
-  (update!* [_ key func]
+  (modify* [_ key func]
     (swap! a update-in [key] func)))
 
 (defn memory-state []

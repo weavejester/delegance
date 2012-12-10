@@ -11,8 +11,8 @@
 
 (defprotocol State
   (get! [state key])
-  (put! [state key val])
-  (update!* [state key func]))
+  (put [state key val])
+  (modify* [state key func]))
 
-(defn update! [state key func & args]
-  (update!* state key #(apply func % args)))
+(defn modify [state key func & args]
+  (modify* state key #(apply func % args)))
