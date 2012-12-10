@@ -1,8 +1,6 @@
 (ns delegance.memory
-  (:require [delegance.protocols :refer :all]))
-
-(defn- random-uuid []
-  (java.util.UUID/randomUUID))
+  (:require [delegance.protocols :refer :all]
+            [delegance.util :refer :all]))
 
 (defn- current-time []
   (long (/ (System/currentTimeMillis) 1000)))
