@@ -12,7 +12,7 @@
   (when-let [job (reserve queue 300)]
     (try
       (eval (:data job))
-      (finally (finish queue (:id job))))))
+      (finally (finish queue job)))))
 
 (defn worker
   ([queue]

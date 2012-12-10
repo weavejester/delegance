@@ -7,7 +7,7 @@
 (defprotocol Queue
   (push [queue data])
   (reserve [queue timeout])
-  (finish [queue key]))
+  (finish [queue job]))
 
 (defprotocol State
   (get! [state key])

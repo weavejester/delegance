@@ -41,9 +41,9 @@
          (alter queue pop)
          (alter reserved assoc (:id val) val)
          val))))
-  (finish [_ key]
+  (finish [_ job]
     (dosync
-     (alter reserved dissoc key)
+     (alter reserved dissoc (:id job))
      nil)))
 
 (defn memory-queue []
