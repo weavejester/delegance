@@ -11,7 +11,7 @@
 
 (deftype MemoryStore [a]
   Store
-  (store [_ val timeout]
+  (store* [_ val timeout]
     (let [key     (random-uuid)
           expires (+ (current-time) timeout)]
       (swap! a assoc key {:data val :expires expires})
