@@ -1,6 +1,8 @@
-(ns delegance.core)
+(ns delegance.core
+  (:require [delegance.protocols :refer :all]))
 
-(defn foo
-  "I don't do a whole lot."
-  [x]
-  (println x "Hello, World!"))
+(defn delegate-eval [client form]
+  (push (:queue client) form))
+
+(defmacro delegate [client form]
+  `(delegate-eval ~client '~form))

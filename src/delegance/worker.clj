@@ -5,17 +5,17 @@
 (def executor
   (ScheduledThreadPoolExecutor. 32))
 
-(defn- every [delay runnable]
-  (.scheduleAtFixedRate executor runnable 0 delay TimeUnit/SECONDS))
+(defn- every [rate runnable]
+  (.scheduleAtFixedRate executor runnable 0 rate TimeUnit/SECONDS))
 
-(defn- process-available-jobs [queue]
+(defn- process-available-jobs [{:keys [queue state store]}]
   (when-let [job (reserve queue 300)]
     (try
       (eval (:data job))
       (finally (finish queue job)))))
 
 (defn worker
-  ([queue]
-     (worker 1 queue))
-  ([delay queue]
-     (every delay #(process-available-jobs queue))))
+  ([client]
+     (worker 1 client))
+  ([rate client]
+     (every rate #(process-available-jobs client))))
