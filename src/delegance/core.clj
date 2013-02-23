@@ -18,5 +18,8 @@
             #(if-let [result-id (:result (get! state job-id))]
                (fetch storage result-id))))))
 
+(defn resolve-form [form]
+  (eval (read-string (str \` (pr-str form)))))
+
 (defmacro delegate [client form]
-  `(delegate-eval ~client '~form))
+  `(delegate-eval ~client '~(resolve-form form)))
