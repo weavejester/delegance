@@ -9,22 +9,6 @@
   (if-let [expires (:expires x)]
     (>= (current-time) expires)))
 
-(deftype MemoryStore [a]
-  Store
-  (store* [_ val timeout]
-    (let [key     (random-uuid)
-          expires (+ (current-time) timeout)]
-      (swap! a assoc key {:data val :expires expires})
-      key))
-  (fetch [_ key]
-    (if-let [val (@a key)]
-      (if (expired? val)
-        (do (swap! a dissoc key) nil)
-        (:data val)))))
-
-(defn memory-store []
-  (MemoryStore. (atom {})))
-
 (deftype MemoryQueue [queue reserved]
   Queue
   (push [_ data]
