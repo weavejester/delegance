@@ -2,8 +2,8 @@
 
 (defprotocol Queue
   (push [queue data])
-  (reserve [queue timeout])
-  (finish [queue job]))
+  (reserve [queue])
+  (finish [queue job-id]))
 
 (defprotocol State
   (get! [state key])

@@ -9,13 +9,13 @@
   (if-let [expires (:expires x)]
     (>= (current-time) expires)))
 
-(deftype MemoryQueue [queue reserved]
+(deftype MemoryQueue [queue reserved timeout]
   Queue
   (push [_ data]
     (dosync
      (alter queue conj {:id (random-uuid) :created (current-time) :data data})
      nil))
-  (reserve [_ timeout]
+  (reserve [_]
     (dosync
      (doseq [[id x] @reserved :when (expired? x)]
        (alter reserved dissoc id)
@@ -24,16 +24,19 @@
        (let [val (assoc val :expires (+ (current-time) timeout))]
          (alter queue pop)
          (alter reserved assoc (:id val) val)
-         val))))
-  (finish [_ job]
+         [(:id val) (:data val)]))))
+  (finish [_ job-id]
     (dosync
-     (alter reserved dissoc (:id job))
+     (alter reserved dissoc job-id)
      nil)))
 
-(defn memory-queue []
-  (MemoryQueue.
-   (ref (clojure.lang.PersistentQueue/EMPTY))
-   (ref {})))
+(defn memory-queue
+  ([] (memory-queue 300))
+  ([timeout]
+     (MemoryQueue.
+      (ref (clojure.lang.PersistentQueue/EMPTY))
+      (ref {})
+      timeout)))
 
 (deftype MemoryState [a]
   State

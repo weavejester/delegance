@@ -9,15 +9,15 @@
   (.scheduleAtFixedRate executor runnable 0 rate TimeUnit/SECONDS))
 
 (defn- process-available-jobs [{queue :queue, state :state}]
-  (when-let [{job-id :data :as job} (reserve queue 300)]
+  (when-let [[job-id state-id] (reserve queue)]
     (try
-      (let [job-state (get! state job-id)
+      (let [job-state (get! state state-id)
             result    (eval (:form job-state))]
-        (modify state job-id assoc :result result))
+        (modify state state-id assoc :result result))
       (catch Exception e
         (prn e))
       (finally
-        (finish queue job)))))
+        (finish queue job-id)))))
 
 (defn worker
   ([client]
