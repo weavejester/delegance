@@ -15,7 +15,10 @@
             job-form  (fetch storage (:form job-state))
             result-id (store storage (eval job-form))]
         (modify state job-id assoc :result result-id))
-      (finally (finish queue job)))))
+      (catch Exception e
+        (prn e))
+      (finally
+       (finish queue job)))))
 
 (defn worker
   ([client]
