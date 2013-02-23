@@ -1,7 +1,14 @@
 (ns delegance.test.core
   (:use clojure.test
-        delegance.core))
+        delegance.core
+        delegance.memory
+        delegance.worker))
 
-(deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 1))))
+(def client
+  {:queue (memory-queue)
+   :state (memory-state)})
+
+(deftest test-delegate
+  (worker client)
+  (let [x (delegate client (+ 1 1))]
+    (is (= @x 2))))
