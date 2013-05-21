@@ -1,4 +1,4 @@
-(ns delegance.test.core
+(ns delegance.core-test
   (:use clojure.test
         delegance.core
         delegance.memory
