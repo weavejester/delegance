@@ -9,6 +9,6 @@
    :state (memory-state)})
 
 (deftest test-delegate
-  (worker client)
+  (run-worker client)
   (let [x (delegate client (+ 1 1))]
     (is (= @x 2))))

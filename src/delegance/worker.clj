@@ -19,8 +19,8 @@
       (finally
         (finish queue job-id)))))
 
-(defn worker
+(defn run-worker
   ([client]
-     (worker 1 client))
+     (run-worker 1 client))
   ([rate client]
      (every rate #(process-available-jobs client))))
