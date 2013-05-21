@@ -2,7 +2,7 @@
   (:import [java.util.concurrent ScheduledThreadPoolExecutor TimeUnit])
   (:require [delegance.protocols :refer :all]))
 
-(def executor
+(def ^:private executor
   (ScheduledThreadPoolExecutor. 32))
 
 (defn- every [rate runnable]
@@ -24,3 +24,6 @@
      (run-worker 1 client))
   ([rate client]
      (every rate #(process-available-jobs client))))
+
+(defn shutdown-workers []
+  (.shutdown executor))
