@@ -2,6 +2,9 @@
   (:require [delegance.protocols :refer :all]
             [delegance.util :refer (random-uuid)]))
 
+(defn- cur-time []
+  (System/currentTimeMillis))
+
 (deftype RemotePromise [getter poll-rate no-data]
   clojure.lang.IDeref
   (deref [rp]
@@ -9,7 +12,17 @@
       (let [value (getter)]
         (if (= value no-data)
           (do (Thread/sleep poll-rate) (recur))
-          value)))))
+          value))))
+  clojure.lang.IBlockingDeref
+  (deref [rp timeout-ms timeout-val]
+    (let [end-time (+ (cur-time) timeout-ms)]
+      (loop []
+        (if (>= (cur-time) end-time)
+          timeout-val
+          (let [value (getter)]
+            (if (= value no-data)
+              (do (Thread/sleep (min (- end-time (cur-time)) poll-rate)) (recur))
+              value)))))))
 
 (defn delegate-eval [client form]
   (let [{queue :queue, state :state} client
