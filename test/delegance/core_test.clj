@@ -12,13 +12,13 @@
   (dotimes [_ 10]
     (run-worker client))
   (testing "simple deref"
-    (let [x (delegate client (+ 1 1))]
+    (let [x (delegate client `(+ 1 1))]
       (is (= @x 2))))
   (testing "timeout values"
-    (let [x (delegate client (Thread/sleep 3000))]
+    (let [x (delegate client `(Thread/sleep 3000))]
       (is (= (deref x 1000 :timeout) :timeout))))
   (testing "timeout times"
-    (let [x  (delegate client (Thread/sleep 3000))
+    (let [x  (delegate client `(Thread/sleep 3000))
           t1 (System/currentTimeMillis)]
       (deref x 1500 :timeout)
       (let [t2 (System/currentTimeMillis)]
