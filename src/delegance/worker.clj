@@ -2,12 +2,6 @@
   (:import [java.util.concurrent ScheduledThreadPoolExecutor TimeUnit])
   (:require [delegance.protocols :refer :all]))
 
-(def ^:private executor
-  (ScheduledThreadPoolExecutor. 32))
-
-(defn- every [rate runnable]
-  (.scheduleAtFixedRate executor runnable 0 rate TimeUnit/SECONDS))
-
 (defn- process-available-jobs [{queue :queue, state :state}]
   (when-let [[job-id state-id] (reserve queue)]
     (try
@@ -19,11 +13,19 @@
       (finally
         (finish queue job-id)))))
 
+(def default-worker-max-threads
+  (+ 2 (.availableProcessors (Runtime/getRuntime))))
+
 (defn run-worker
   ([client]
-     (run-worker 1 client))
-  ([rate client]
-     (every rate #(process-available-jobs client))))
+     (run-worker client 1000))
+  ([client rate]
+     (run-worker client rate default-worker-max-threads))
+  ([client rate max-threads]
+     (let [executor (ScheduledThreadPoolExecutor. max-threads)
+           process  #(process-available-jobs client)]
+       (.scheduleAtFixedRate executor process 0 rate TimeUnit/MILLISECONDS)
+       {:client client :executor executor})))
 
-(defn shutdown-workers []
-  (.shutdown executor))
+(defn shutdown-worker [worker]
+  (.shutdown (:executor worker)))
