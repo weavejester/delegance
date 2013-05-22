@@ -7,9 +7,10 @@
     (try
       (let [job-state (get! state state-id)
             result    (eval (:form job-state))]
-        (modify state state-id assoc :result result :complete? true))
-      (catch Exception e
-        (prn e))
+        (modify state state-id assoc :complete? true :result result))
+      (catch Exception ex
+        (modify state state-id assoc :complete? true)
+        (prn ex))
       (finally
         (finish queue job-id)))))
 
