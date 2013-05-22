@@ -13,7 +13,7 @@
     (try
       (let [job-state (get! state state-id)
             result    (eval (:form job-state))]
-        (modify state state-id assoc :result result))
+        (modify state state-id assoc :result result :complete? true))
       (catch Exception e
         (prn e))
       (finally
