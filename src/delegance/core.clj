@@ -1,7 +1,6 @@
 (ns delegance.core
   "The core namespace for Delegance."
-  (:require [delegance.protocols :refer :all]
-            [delegance.util :refer (random-uuid)]))
+  (:require [delegance.protocols :refer :all]))
 
 (defn- poll-job
   "Poll the state of a job, returning the result when the job is complete."
@@ -22,7 +21,7 @@
   delegance.protocols namespace."
   [config form]
   (let [{queue :queue, state :state} config
-        job-id (random-uuid)
+        job-id (java.util.UUID/randomUUID)
         result (promise)]
     (put state job-id {:form form})
     (push queue job-id)

@@ -1,8 +1,7 @@
 (ns delegance.memory
   "An implementation of the Delegance protocols for an in-memory queue and
   state. Useful for testing and debugging purposes."
-  (:require [delegance.protocols :refer :all]
-            [delegance.util :refer :all]))
+  (:require [delegance.protocols :refer :all]))
 
 (defn- current-time []
   (long (/ (System/currentTimeMillis) 1000)))
@@ -15,8 +14,9 @@
   Queue
   (push [_ data]
     (dosync
-     (alter queue conj {:id (random-uuid) :created (current-time) :data data})
-     nil))
+     (let [job-id (java.util.UUID/randomUUID)]
+       (alter queue conj {:id job-id :created (current-time) :data data})
+       nil)))
   (reserve [_]
     (dosync
      (doseq [[id x] @reserved :when (expired? x)]
