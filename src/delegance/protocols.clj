@@ -11,17 +11,17 @@
   (finish [queue job-id]
     "Mark a job as complete, effectively removing it from the queue."))
 
-(defprotocol State
+(defprotocol KeyValueStore
   "A protocol defining a remote, persistent key-value store."
-  (get! [state key]
+  (get! [store key]
     "Retrieve a value by its key.")
-  (put [state key val]
+  (put [store key val]
     "Set the value of key.")
-  (modify* [state key func]
+  (modify* [store key func]
     "Update the value stored against a key with a function."))
 
 (defn modify
   "Update the value stored against a key with a function. Additional arguments
   may be supplied which will be added to the end of the function call."
-  [state key func & args]
-  (modify* state key #(apply func % args)))
+  [store key func & args]
+  (modify* store key #(apply func % args)))

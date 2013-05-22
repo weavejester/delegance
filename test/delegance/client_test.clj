@@ -6,7 +6,7 @@
 
 (def client
   {:queue (memory-queue)
-   :state (memory-state)})
+   :store (memory-store)})
 
 (deftest test-delegate
   (dotimes [_ 10]

@@ -33,7 +33,7 @@
      nil)))
 
 (defn memory-queue
-  "Create an in-memory queue with a specified read-timeout for messages.
+  "Creates an in-memory queue with a specified read-timeout for messages.
   Defaults to 300 seconds."
   ([] (memory-queue 300))
   ([timeout]
@@ -42,8 +42,8 @@
       (ref {})
       timeout)))
 
-(deftype MemoryState [a]
-  State
+(deftype MemoryStore [a]
+  KeyValueStore
   (get! [_ key]
     (@a key))
   (put [_ key val]
@@ -51,7 +51,7 @@
   (modify* [_ key func]
     (swap! a update-in [key] func)))
 
-(defn memory-state
-  "Create an in-memory state."
+(defn memory-store
+  "Creates an in-memory key-value store."
   []
-  (MemoryState. (atom {})))
+  (MemoryStore. (atom {})))

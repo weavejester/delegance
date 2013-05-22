@@ -4,22 +4,22 @@
   (:import [java.util.concurrent ScheduledThreadPoolExecutor TimeUnit])
   (:require [delegance.protocols :refer :all]))
 
-(defn- process-available-jobs [{queue :queue, state :state}]
-  (when-let [[job-id state-id] (reserve queue)]
+(defn- process-available-jobs [{queue :queue, store :store}]
+  (when-let [[job-id store-id] (reserve queue)]
     (try
-      (let [job-state (get! state state-id)
-            result    (eval (:form job-state))]
-        (modify state state-id assoc :complete? true :result result))
+      (let [job-store (get! store store-id)
+            result    (eval (:form job-store))]
+        (modify store store-id assoc :complete? true :result result))
       (catch Exception ex
-        (modify state state-id assoc :complete? true)
+        (modify store store-id assoc :complete? true)
         (prn ex))
       (finally
         (finish queue job-id)))))
 
 (defn run-worker
   "Start a worker process running that will poll a queue at a specified rate
-  in milliseconds. The config should contain a :queue and a :state, which
-  should respectively implement the Queue and State protocols in the
+  in milliseconds. The config should contain a :queue and a :store, which
+  should respectively implement the Queue and Store protocols in the
   delegance.protocols namespace. Items should be pushed onto the queue using
   the delegance.core/delegate function. This function returns a worker map."
   ([config]
