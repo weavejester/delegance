@@ -1,5 +1,5 @@
-(ns delegance.core
-  "The core namespace for Delegance."
+(ns delegance.client
+  "The Delegance client that sends jobs to the worker processes."
   (:require [delegance.protocols :refer :all]))
 
 (defn- poll-job
