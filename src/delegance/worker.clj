@@ -23,12 +23,12 @@
   delegance.protocols namespace. Items should be pushed onto the queue using
   the delegance.core/delegate function. This function returns a worker map."
   ([config]
-     (run-worker client 1000))
+     (run-worker config 1000))
   ([config rate]
      (let [executor (ScheduledThreadPoolExecutor. 1)
-           process  #(process-available-jobs client)]
+           process  #(process-available-jobs config)]
        (.scheduleAtFixedRate executor process 0 rate TimeUnit/MILLISECONDS)
-       {:client client :executor executor})))
+       {:client config :executor executor})))
 
 (defn shutdown-worker
   "Shut down a worker started with the run-worker function."
