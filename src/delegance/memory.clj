@@ -1,4 +1,6 @@
 (ns delegance.memory
+  "An implementation of the Delegance protocols for an in-memory queue and
+  state. Useful for testing and debugging purposes."
   (:require [delegance.protocols :refer :all]
             [delegance.util :refer :all]))
 
@@ -31,6 +33,8 @@
      nil)))
 
 (defn memory-queue
+  "Create an in-memory queue with a specified read-timeout for messages.
+  Defaults to 300 seconds."
   ([] (memory-queue 300))
   ([timeout]
      (MemoryQueue.
@@ -47,5 +51,7 @@
   (modify* [_ key func]
     (swap! a update-in [key] func)))
 
-(defn memory-state []
+(defn memory-state
+  "Create an in-memory state."
+  []
   (MemoryState. (atom {})))
