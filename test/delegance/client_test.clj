@@ -1,6 +1,6 @@
 (ns delegance.client-test
   (:use clojure.test
-        delegance.core
+        delegance.client
         delegance.memory
         delegance.worker))
 
