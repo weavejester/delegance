@@ -13,16 +13,11 @@
       (finally
         (finish queue job-id)))))
 
-(def default-worker-max-threads
-  (+ 2 (.availableProcessors (Runtime/getRuntime))))
-
 (defn run-worker
   ([client]
      (run-worker client 1000))
   ([client rate]
-     (run-worker client rate default-worker-max-threads))
-  ([client rate max-threads]
-     (let [executor (ScheduledThreadPoolExecutor. max-threads)
+     (let [executor (ScheduledThreadPoolExecutor. 1)
            process  #(process-available-jobs client)]
        (.scheduleAtFixedRate executor process 0 rate TimeUnit/MILLISECONDS)
        {:client client :executor executor})))
