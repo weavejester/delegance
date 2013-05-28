@@ -20,10 +20,14 @@
 
 (defn run-worker
   "Start a worker process running that will periodically poll a queue for work.
-  The config should contain at least a :queue and a :store, which should
-  respectively implement the Queue and Store protocols in the
-  delegance.protocols namespace. Items should be pushed onto the queue using
-  the delegance.core/delegate function. This function returns a worker map."
+  The config should be a map containing the following options:
+    :queue - an implementation of delegance.protocols/Queue
+    :store - an implementation of delegance.protocols/KeyValueStore
+    :rate  - the poll rate in milliseconds (default 1000)
+    :eval  - the function to use to eval forms (default clojure.core/eval)
+
+  This function returns a worker map that can be used with the shutdown-worker
+  function."
   [{:keys [rate] :or {rate 1000} :as config}]
   (let [executor (ScheduledThreadPoolExecutor. 1)
         process  #(process-next-job config)]
