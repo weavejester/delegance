@@ -1,7 +1,6 @@
 (ns delegance.worker
   "Functions for managing the workers that process the forms queued up with
   the delegance.core/delegate function."
-  (:import [java.util.concurrent ScheduledThreadPoolExecutor TimeUnit])
   (:require [delegance.protocols :refer :all]))
 
 (defn- process-next-job
@@ -29,12 +28,13 @@
   This function returns a worker map that can be used with the shutdown-worker
   function."
   [{:keys [rate] :or {rate 1000} :as config}]
-  (let [executor (ScheduledThreadPoolExecutor. 1)
-        process  #(process-next-job config)]
-    (.scheduleAtFixedRate executor process 0 rate TimeUnit/MILLISECONDS)
-    {:config config :executor executor}))
+  {:config config
+   :process (future (loop []
+                      (process-next-job config)
+                      (Thread/sleep rate)
+                      (recur)))})
 
 (defn shutdown-worker
   "Shut down a worker started with the run-worker function."
   [worker]
-  (.shutdown (:executor worker)))
+  (future-cancel (:process worker)))
