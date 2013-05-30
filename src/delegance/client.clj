@@ -2,15 +2,36 @@
   "The Delegance client that sends jobs to the worker processes."
   (:require [delegance.protocols :refer :all]))
 
-(defn- poll-job
-  "Poll the store of a job, returning the result when the job is complete."
-  [store job-id poll-rate]
-  (loop []
-    (let [value (get! store job-id)]
-      (if (:complete? value)
-        (:result value)
-        (do (Thread/sleep poll-rate)
-            (recur))))))
+(deftype RemotePromise [cache poll no-data poll-rate]
+  clojure.lang.IDeref
+  (deref [rp]
+    (deref rp (* 1000 60 60 24 365 1000) nil))
+  clojure.lang.IPending
+  (isRealized [_]
+    (not= @cache no-data))
+  clojure.lang.IBlockingDeref
+  (deref [_ timeout timeout-val]
+    (let [end-time (+ (System/currentTimeMillis) timeout)]
+      (loop []
+        (let [cached-value @cache]
+          (if (not= cached-value no-data)
+            cached-value
+            (let [value (poll)]
+              (if (not= value no-data)
+                (reset! cache value)
+                (let [time-left (- end-time (System/currentTimeMillis))]
+                  (if (<= time-left 0)
+                    timeout-val
+                    (do (Thread/sleep (min time-left poll-rate))
+                        (recur))))))))))))
+
+(defn- remote-promise
+  "Create a RemotePromise ref that polls a function until the result is equal
+  to somthing other than the value supplied for no-data."
+  ([poll no-data]
+     (remote-promise poll no-data 1000))
+  ([poll no-data poll-rate]
+     (RemotePromise. (atom no-data) poll no-data poll-rate)))
 
 (defn delegate
   "Delegate a quoted Clojure form to be evaluated by a remote worker process.
@@ -25,5 +46,9 @@
         result (promise)]
     (put store job-id {:form form})
     (push queue job-id)
-    (future (deliver result (poll-job store job-id 1000)))
-    result))
+    (remote-promise
+     #(if-let [job (get! store job-id)]
+        (if (:complete? job)
+          (:result job)
+          ::no-data))
+     ::no-data)))
