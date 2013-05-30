@@ -1,4 +1,4 @@
-(defproject delegance "0.2.0"
+(defproject delegance "0.2.1"
   :description "Library for evaluating expressions on remote machines"
   :url "https://github.com/weavejester/delegance"
   :license {:name "Eclipse Public License"
