@@ -12,8 +12,8 @@
             result    (eval (:form job-store))]
         (modify store store-id assoc :complete? true :result result))
       (catch Exception ex
-        (modify store store-id assoc :complete? true)
-        (prn ex))
+        (prn ex)
+        (modify store store-id assoc :complete? true))
       (finally
         (finish queue job-id)))))
 
