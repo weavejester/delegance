@@ -2,7 +2,11 @@
   "The Delegance client that sends jobs to the worker processes."
   (:require [delegance.protocols :refer :all]))
 
-(deftype RemotePromise [cache poll no-data poll-rate]
+(deftype RemotePromise [cache poll no-data poll-rate metadata]
+  clojure.lang.IObj
+  (meta [_] metadata)
+  (withMeta [_ new-metadata]
+    (RemotePromise. cache poll no-data poll-rate new-metadata))
   clojure.lang.IDeref
   (deref [rp]
     (deref rp (* 1000 60 60 24 365 1000) nil))
@@ -31,7 +35,7 @@
   ([poll no-data]
      (remote-promise poll no-data 1000))
   ([poll no-data poll-rate]
-     (RemotePromise. (atom no-data) poll no-data poll-rate)))
+     (RemotePromise. (atom no-data) poll no-data poll-rate {})))
 
 (defn delegate
   "Delegate a quoted Clojure form to be evaluated by a remote worker process.
@@ -46,9 +50,9 @@
         result (promise)]
     (put store job-id {:form form})
     (push queue job-id)
-    (remote-promise
-     #(if-let [job (get! store job-id)]
-        (if (:complete? job)
-          (:result job)
-          ::no-data))
-     ::no-data)))
+    (let [poll #(if-let [job (get! store job-id)]
+                  (if (:complete? job)
+                    (:result job)
+                    ::no-data))]
+      (-> (remote-promise poll ::no-data)
+          (with-meta {:queue queue, :store store, :job-id job-id})))))
