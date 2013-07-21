@@ -12,7 +12,7 @@ remote machines, without the overhead of something like Hadoop.
 
 Add the following dependency to your `project.clj` file:
 
-    [delegance "0.2.2"]
+    [delegance "0.2.3"]
 
 ## Usage
 
